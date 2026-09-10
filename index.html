@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VP Fashion Configurator</title>
+    <link rel="stylesheet" href="src/index.css">
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; color: #eee; font-family: 'Inter', sans-serif; }
+        canvas { display: block; }
+        .ui-panel { position: absolute; top: 20px; right: 20px; width: 320px; background: rgba(10,10,10,0.85); backdrop-filter: blur(15px); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); max-height: 90vh; overflow-y: auto; z-index: 100; transition: transform 0.3s ease; }
+        .ui-panel.hidden-panel { transform: translateX(350px); }
+        .toggle-ui { position: absolute; top: 20px; right: 20px; z-index: 101; background: #111; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
+        
+        .control-group { margin-bottom: 24px; }
+        .control-label { display: block; font-size: 0.7rem; text-transform: uppercase; opacity: 0.5; margin-bottom: 12px; letter-spacing: 0.1em; font-weight: 600; }
+        
+        .carousel { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 8px; scrollbar-width: none; }
+        .carousel::-webkit-scrollbar { display: none; }
+        .carousel-item { flex: 0 0 80px; aspect-ratio: 1; border-radius: 10px; border: 2px solid transparent; cursor: pointer; overflow: hidden; transition: all 0.2s; background: #222; }
+        .carousel-item.active { border-color: #6366f1; }
+        .carousel-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        .color-section { display: flex; flex-direction: column; gap: 12px; }
+        .color-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 8px; }
+        .color-row span { font-size: 0.8rem; opacity: 0.8; }
+        .color-picker-wrapper { display: flex; align-items: center; gap: 8px; }
+        .color-input { width: 30px; height: 30px; border: none; border-radius: 4px; background: none; cursor: pointer; padding: 0; }
+        .pantone-input { background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 0.7rem; padding: 4px 6px; width: 70px; border-radius: 4px; font-family: monospace; }
+
+        .export-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .export-content { background: #111; padding: 32px; border-radius: 20px; width: 450px; border: 1px solid rgba(255,255,255,0.1); }
+        
+        .frame-overlay { position: fixed; border: 2px solid #6366f1; pointer-events: none; display: none; z-index: 50; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+    <button id="toggle-ui" class="toggle-ui flex items-center gap-2">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+        <span>Hide Properties</span>
+    </button>
+
+    <div id="loading-overlay" class="fixed inset-0 bg-black flex flex-col items-center justify-center z-[1000]">
+        <div class="w-10 h-10 border-4 border-white/10 border-t-indigo-500 rounded-full animate-spin"></div>
+        <p class="mt-4 text-xs tracking-widest uppercase opacity-40">Loading Engine</p>
+    </div>
+
+    <div id="canvas-container"></div>
+    <div id="frame-overlay" class="frame-overlay"></div>
+    
+    <div class="fixed bottom-5 left-5 z-[100] flex gap-2">
+        <a href="index.html" class="bg-indigo-600 px-4 py-2 rounded-lg text-xs border border-indigo-500/50 hover:bg-indigo-500 transition-colors flex items-center gap-2">
+            <i data-lucide="layers" class="w-3 h-3"></i>
+            <span>Configurator</span>
+        </a>
+        <a href="vp-engine.html" class="bg-zinc-800/80 backdrop-blur px-4 py-2 rounded-lg text-xs border border-white/10 hover:bg-zinc-700 transition-colors flex items-center gap-2">
+            <i data-lucide="box" class="w-3 h-3"></i>
+            <span>Engine View</span>
+        </a>
+    </div>
+
+    <div id="ui-panel" class="ui-panel">
+        <h2 class="text-lg font-bold mb-6 border-b border-white/5 pb-4">VP Configurator</h2>
+        
+        <div class="control-group">
+            <span class="control-label">Configurator Mode</span>
+            <div class="grid grid-cols-2 gap-2">
+                <button class="bg-zinc-800 py-2 rounded-lg text-sm active flex items-center justify-center gap-2" id="btn-mode-mix">
+                    <i data-lucide="layers" class="w-4 h-4"></i>
+                    <span>Mix & Match</span>
+                </button>
+                <button class="bg-zinc-800 py-2 rounded-lg text-sm flex items-center justify-center gap-2" id="btn-mode-dress">
+                    <i data-lucide="shirt" class="w-4 h-4"></i>
+                    <span>Full Dress</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Gender</span>
+            <div class="grid grid-cols-2 gap-2">
+                <button class="bg-zinc-800 py-2 rounded-lg text-sm active flex items-center justify-center gap-2" id="btn-male">
+                    <i data-lucide="user" class="w-4 h-4"></i>
+                    <span>Male</span>
+                </button>
+                <button class="bg-zinc-800 py-2 rounded-lg text-sm flex items-center justify-center gap-2" id="btn-female">
+                    <i data-lucide="user" class="w-4 h-4"></i>
+                    <span>Female</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Top</span>
+            <div class="carousel" id="top-carousel"></div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Bottom</span>
+            <div class="carousel" id="bottom-carousel"></div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Jacket</span>
+            <div class="carousel" id="jacket-carousel"></div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Dress</span>
+            <div class="carousel" id="dress-carousel"></div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Combo Set</span>
+            <div class="carousel" id="comboset-carousel"></div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label flex items-center gap-2">
+                <i data-lucide="sun" class="w-3 h-3"></i>
+                Environment & HDR
+            </span>
+            <select id="hdr-select" class="w-full bg-zinc-800 border border-white/10 rounded-lg p-2 text-sm mb-3">
+                <option value="venice_sunset">Venice Sunset</option>
+                <option value="royal_esplanade">Quarry (Stable)</option>
+                <option value="pedestrian_overpass">Pedestrian Overpass</option>
+            </select>
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs opacity-50">Intensity</span>
+                <input type="range" id="hdr-intensity" class="w-2/3 accent-indigo-500" min="0" max="10" value="2">
+            </div>
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs opacity-50">Rotation</span>
+                <input type="range" id="hdr-rotation" class="w-2/3 accent-indigo-500" min="0" max="360" value="0">
+            </div>
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs opacity-50">HDR Background</span>
+                <input type="checkbox" id="hdr-toggle" class="w-4 h-4 accent-indigo-500" checked>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-xs opacity-50">Fade Animation</span>
+                <input type="checkbox" id="fade-toggle" class="w-4 h-4 accent-indigo-500">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label flex items-center gap-2">
+                <i data-lucide="box" class="w-3 h-3"></i>
+                Shadows & Grid
+            </span>
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs opacity-50">Shadows ON/OFF</span>
+                <input type="checkbox" id="shadow-toggle" class="w-4 h-4 accent-indigo-500" checked>
+            </div>
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs opacity-50">Shadow Intensity</span>
+                <input type="range" id="shadow-intensity" class="w-2/3 accent-indigo-500" min="0" max="2" step="0.1" value="1">
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-xs opacity-50">Floor Grid</span>
+                <input type="checkbox" id="grid-toggle" class="w-4 h-4 accent-indigo-500" checked>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label flex items-center gap-2">
+                <i data-lucide="image" class="w-3 h-3"></i>
+                360 Background
+            </span>
+            <div class="flex flex-col gap-2">
+                <label class="bg-zinc-800 py-2 rounded-lg text-xs text-center cursor-pointer hover:bg-zinc-700 transition-colors">
+                    Upload 360 Image
+                    <input type="file" id="bg360-input" class="hidden" accept="image/*">
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="bg-zinc-800 py-1 rounded text-[10px] hover:bg-zinc-700" onclick="document.getElementById('bg360-input').click()">Custom</button>
+                    <button class="bg-zinc-800 py-1 rounded text-[10px] hover:bg-zinc-700" onclick="window.dispatchEvent(new CustomEvent('load-360-preset', {detail: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/equirectangular/venice_sunset_1k.hdr'}))">Preset 1</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label flex items-center gap-2">
+                <i data-lucide="user" class="w-3 h-3"></i>
+                Mannequin
+            </span>
+            <div class="flex items-center justify-between">
+                <span class="text-xs opacity-50">Visibility</span>
+                <button id="btn-mannequin-toggle" class="bg-zinc-800 px-4 py-1 rounded text-xs flex items-center gap-2">
+                    <i data-lucide="eye" class="w-3 h-3"></i>
+                    <span>ON</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label flex items-center gap-2">
+                <i data-lucide="palette" class="w-3 h-3"></i>
+                Background Color
+            </span>
+            <div class="flex items-center justify-between bg-zinc-800/50 p-2 rounded-lg">
+                <span class="text-xs opacity-50">Solid Color</span>
+                <input type="color" id="bg-color-picker" value="#050505" class="w-8 h-8 bg-transparent border-none cursor-pointer">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label flex items-center gap-2">
+                <i data-lucide="palette" class="w-3 h-3"></i>
+                Colors & Pantone
+            </span>
+            <div class="color-section" id="color-section">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label flex items-center gap-2">
+                <i data-lucide="smartphone" class="w-3 h-3"></i>
+                AR / VR / XR
+            </span>
+            <div class="grid grid-cols-3 gap-2">
+                <button class="bg-zinc-800 p-2 rounded-lg flex flex-col items-center gap-1" title="Apple Vision Pro / iOS">
+                    <i data-lucide="smartphone" class="w-4 h-4"></i>
+                    <span class="text-[10px]">Apple</span>
+                </button>
+                <button class="bg-zinc-800 p-2 rounded-lg flex flex-col items-center gap-1" title="Android / Quest">
+                    <i data-lucide="smartphone" class="w-4 h-4"></i>
+                    <span class="text-[10px]">Android</span>
+                </button>
+                <button class="bg-zinc-800 p-2 rounded-lg flex flex-col items-center gap-1" title="Windows / WebXR">
+                    <i data-lucide="monitor" class="w-4 h-4"></i>
+                    <span class="text-[10px]">Windows</span>
+                </button>
+            </div>
+            <div id="qr-container" class="mt-3 hidden bg-white p-3 rounded-lg mx-auto w-32 h-32 flex flex-col items-center justify-center text-zinc-900">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-20 h-20"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                <span class="text-[9px] font-bold mt-1 text-zinc-600">Scan for AR</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">XR Experience</span>
+            <div class="grid grid-cols-2 gap-2">
+                <button class="bg-indigo-600 py-2 rounded-lg text-xs font-bold hover:bg-indigo-500" id="btn-ar">Enter AR</button>
+                <button class="bg-indigo-600 py-2 rounded-lg text-xs font-bold hover:bg-indigo-500" id="btn-vr">Enter VR</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label flex items-center gap-2">
+                <i data-lucide="zap" class="w-3 h-3"></i>
+                Actions
+            </span>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <button class="bg-zinc-800 py-2 rounded-lg text-xs flex items-center justify-center gap-2" id="btn-reset-camera" title="Focus Avatar (Keyboard Shortcut: F)">
+                    <i data-lucide="maximize" class="w-3 h-3"></i>
+                    <span>Focus Avatar (F)</span>
+                </button>
+                <button class="bg-zinc-800 py-2 rounded-lg text-xs flex items-center justify-center gap-2" id="btn-randomize">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                    <span>Randomize</span>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <button class="bg-zinc-800 py-2 rounded-lg text-xs flex items-center justify-center gap-2" id="btn-spin">
+                    <i data-lucide="rotate-cw" class="w-3 h-3"></i>
+                    <span>Auto Spin: OFF</span>
+                </button>
+                <button class="bg-zinc-800 py-2 rounded-lg text-xs flex items-center justify-center gap-2" id="btn-share">
+                    <i data-lucide="share-2" class="w-3 h-3"></i>
+                    <span>Share Link</span>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <button class="bg-zinc-800 py-2 rounded-lg text-xs flex items-center justify-center gap-2" id="btn-save-preset">
+                    <i data-lucide="save" class="w-3 h-3"></i>
+                    <span>Save Preset</span>
+                </button>
+                <button class="bg-zinc-800 py-2 rounded-lg text-xs flex items-center justify-center gap-2" id="btn-open-preset">
+                    <i data-lucide="folder-open" class="w-3 h-3"></i>
+                    <span>Open Preset</span>
+                </button>
+            </div>
+            <div class="mt-2">
+                <button class="w-full bg-zinc-800 py-2 rounded-lg text-xs flex items-center justify-center gap-2" id="btn-ecommerce">
+                    <i data-lucide="shopping-bag" class="w-3 h-3"></i>
+                    <span>eComm Export</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label flex items-center gap-2">
+                <i data-lucide="download" class="w-3 h-3"></i>
+                Export Options
+            </span>
+            <div class="grid grid-cols-1 gap-2">
+                <button class="bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2" id="btn-export-direct">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                    <span>Direct Export (1080p)</span>
+                </button>
+                <button class="bg-zinc-800 hover:bg-zinc-700 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2" id="btn-export-custom">
+                    <i data-lucide="settings-2" class="w-4 h-4"></i>
+                    <span>Custom Resolution</span>
+                </button>
+                <button class="bg-zinc-800 hover:bg-zinc-700 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2" id="btn-export-turntable">
+                    <i data-lucide="video" class="w-4 h-4"></i>
+                    <span>Turntable MP4</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="export-modal" class="export-modal">
+        <div class="export-content">
+            <h3 class="text-xl font-bold mb-6">Custom Export Settings</h3>
+            
+            <div class="space-y-4 mb-8">
+                <div>
+                    <label class="block text-xs opacity-50 mb-2 uppercase">Resolution</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="number" id="export-width" value="1920" class="bg-zinc-900 border border-white/10 rounded-lg p-3 text-sm" placeholder="Width">
+                        <input type="number" id="export-height" value="1080" class="bg-zinc-900 border border-white/10 rounded-lg p-3 text-sm" placeholder="Height">
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-sm opacity-80">Transparent Background</span>
+                    <input type="checkbox" id="export-transparent" class="w-5 h-5 accent-indigo-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button class="bg-zinc-800 py-3 rounded-xl text-sm" id="btn-export-cancel">Cancel</button>
+                <button class="bg-indigo-600 py-3 rounded-xl text-sm font-bold" id="btn-export-confirm">Download PNG</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log("index.html loaded.");
+        window.onerror = function(message, source, lineno, colno, error) {
+            // Filter out non-fatal resource events (e.g. img errors, isTrusted DOM events)
+            if (!message || (typeof message === 'object' && (message.isTrusted || message instanceof Event))) {
+                return true;
+            }
+            if (typeof message === 'string' && (message.includes('ResizeObserver') || message.includes('isTrusted'))) {
+                return true;
+            }
+            console.error("Global Error:", message, "at", source, ":", lineno);
+            return false;
+        };
+        window.addEventListener('unhandledrejection', function(event) {
+            console.warn("Handled unhandled promise rejection:", event.reason);
+            event.preventDefault();
+        });
+    </script>
+    <script type="module" src="vp-configurator/main.js"></script>
+</body>
+</html>

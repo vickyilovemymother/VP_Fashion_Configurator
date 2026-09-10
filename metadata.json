@@ -1,0 +1,8 @@
+{
+  "name": "VP Fashion Configurator_V1.0.1",
+  "description": "Advanced 3D Fashion Configurator with real-time PBR rendering, modular garment swapping, and high-res exports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

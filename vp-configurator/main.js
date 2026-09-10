@@ -13,6 +13,8 @@ import { UIController } from './controllers/UIController.js';
 import { URLUtils } from './utils/URLUtils.js';
 import { createIcons, Settings, User, Layers, Shirt, Palette, Image, Video, Download, Share2, Save, FolderOpen, ShoppingBag, RotateCw, Sun, Moon, Eye, EyeOff, Grid, Smartphone, Monitor, Box, Camera, Trash2, RefreshCw, Maximize, Zap, Sparkles, Upload, Settings2, Columns2, Scissors } from 'lucide';
 
+import defaultGarmentConfig from './config/garmentConfig.json';
+
 console.log("VP Configurator main.js loaded.");
 
 window.createIcons = createIcons;
@@ -33,11 +35,17 @@ async function init() {
         console.log("Core systems initialized.");
 
         // 2. Load Config
-        const configUrl = './vp-configurator/config/garmentConfig.json';
-        console.log(`Fetching config from: ${configUrl}`);
-        const configResponse = await fetch(configUrl);
-        if (!configResponse.ok) throw new Error(`Failed to load config: ${configResponse.statusText}`);
-        const garmentConfig = await configResponse.json();
+        let garmentConfig = defaultGarmentConfig;
+        try {
+            const configUrl = './vp-configurator/config/garmentConfig.json';
+            console.log(`Fetching config from: ${configUrl}`);
+            const configResponse = await fetch(configUrl);
+            if (configResponse.ok) {
+                garmentConfig = await configResponse.json();
+            }
+        } catch (e) {
+            console.warn("Fetch config warning, using bundled garmentConfig fallback:", e);
+        }
         console.log("Config loaded:", garmentConfig);
 
         // 3. Controllers

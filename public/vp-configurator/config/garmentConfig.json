@@ -1,0 +1,131 @@
+{
+    "top": [
+        {
+            "id": "M_TP_TS001_v1",
+            "name": "Classic T-Shirt",
+            "gender": "male",
+            "url": "/assets/models/M_TP_TS001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/M_TP_TS001_v1.png"
+        },
+        {
+            "id": "WM_TP_TS001_v1",
+            "name": "Silk Blouse",
+            "gender": "female",
+            "url": "/assets/models/WM_TP_TS001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/WM_TP_TS001_v1.png"
+        }
+    ],
+    "bottom": [
+        {
+            "id": "M_BM_BS001_v1",
+            "name": "Slim Jeans",
+            "gender": "male",
+            "url": "/assets/models/M_BM_BS001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/M_BM_BS001_v1.png"
+        },
+        {
+            "id": "WM_BM_BS001_v1",
+            "name": "Pencil Skirt",
+            "gender": "female",
+            "url": "/assets/models/WM_BM_BS001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/WM_BM_BS001_v1.png"
+        }
+    ],
+    "jacket": [
+        {
+            "id": "M_JK_JB001_v1",
+            "name": "Leather Jacket",
+            "gender": "male",
+            "url": "/assets/models/M_JK_JB001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/M_JK_JB001_v1.png"
+        },
+        {
+            "id": "WM_JK_JB001_v1",
+            "name": "Blazer",
+            "gender": "female",
+            "url": "/assets/models/WM_JK_JB001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/WM_JK_JB001_v1.png"
+        }
+    ],
+    "dress": [
+        {
+            "id": "WM_TP_TS001_v1",
+            "name": "Summer Dress",
+            "gender": "female",
+            "url": "/assets/models/WM_TP_TS001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/WM_TP_TS001_v1.png"
+        },
+        {
+            "id": "WM_CS_CS001_v1",
+            "name": "Evening Gown",
+            "gender": "female",
+            "url": "/assets/models/WM_CS_CS001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/WM_CS_CS001_v1.png"
+        },
+        {
+            "id": "WM_CS_CS002_v1",
+            "name": "Cocktail Dress",
+            "gender": "female",
+            "url": "/assets/models/WM_CS_CS002_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/WM_CS_CS002_v1.png"
+        },
+        {
+            "id": "M_CS_CS001_v1",
+            "name": "Full Suit",
+            "gender": "male",
+            "url": "/assets/models/M_CS_CS001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/M_CS_CS001_v1.png"
+        },
+        {
+            "id": "M_CS_CS002_v1",
+            "name": "Casual Set",
+            "gender": "male",
+            "url": "/assets/models/M_CS_CS002_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/M_CS_CS002_v1.png"
+        },
+        {
+            "id": "M_CS_CS003_v1",
+            "name": "Formal Set",
+            "gender": "male",
+            "url": "/assets/models/M_CS_CS003_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/M_CS_CS003_v1.png"
+        }
+    ],
+    "comboset": [
+        {
+            "id": "M_CS_CS001_v1",
+            "name": "Full Suit",
+            "gender": "male",
+            "url": "/assets/models/M_CS_CS001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/M_CS_CS001_v1.png"
+        },
+        {
+            "id": "M_CS_CS002_v1",
+            "name": "Casual Set",
+            "gender": "male",
+            "url": "/assets/models/M_CS_CS002_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/M_CS_CS002_v1.png"
+        },
+        {
+            "id": "M_CS_CS003_v1",
+            "name": "Formal Set",
+            "gender": "male",
+            "url": "/assets/models/M_CS_CS003_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/M_CS_CS003_v1.png"
+        },
+        {
+            "id": "WM_CS_CS001_v1",
+            "name": "Evening Gown",
+            "gender": "female",
+            "url": "/assets/models/WM_CS_CS001_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/WM_CS_CS001_v1.png"
+        },
+        {
+            "id": "WM_CS_CS002_v1",
+            "name": "Cocktail Dress",
+            "gender": "female",
+            "url": "/assets/models/WM_CS_CS002_v1.glb?v=1.0.1",
+            "thumbnail": "/assets/models/WM_CS_CS002_v1.png"
+        }
+    ]
+}
